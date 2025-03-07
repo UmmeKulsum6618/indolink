@@ -1,0 +1,146 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+class User {
+    String username;
+    String password; // NEVER store passwords in plain text in production!
+    List<Post> posts;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.posts = new ArrayList<>();
+    }
+}
+
+class Post {
+    String content;
+    User author;
+
+    public Post(String content, User author) {
+        this.content = content;
+        this.author = author;
+    }
+
+    public String toString() {
+        return author.username + ": " + content;
+    }
+}
+
+public class SocialMediaPlatform {
+
+    private Map<String, User> users = new HashMap<>();
+    private List<Post> allPosts = new ArrayList<>();
+    private User currentUser = null;
+    private Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        SocialMediaPlatform platform = new SocialMediaPlatform();
+        platform.run();
+    }
+
+    public void run() {
+        while (true) {
+            if (currentUser == null) {
+                showLoginMenu();
+            } else {
+                showMainMenu();
+            }
+        }
+    }
+
+    private void showLoginMenu() {
+        System.out.println("\n1. Register\n2. Login\n3. Exit");
+        int choice = getIntInput();
+
+        switch (choice) {
+            case 1:
+                registerUser();
+                break;
+            case 2:
+                loginUser();
+                break;
+            case 3:
+                System.out.println("Exiting...");
+                System.exit(0);
+            default:
+                System.out.println("Invalid choice.");
+        }
+    }
+
+    private void showMainMenu() {
+        System.out.println("\n1. Create Post\n2. View Posts\n3. Logout");
+        int choice = getIntInput();
+
+        switch (choice) {
+            case 1:
+                createPost();
+                break;
+            case 2:
+                viewPosts();
+                break;
+            case 3:
+                currentUser = null;
+                System.out.println("Logged out.");
+                break;
+            default:
+                System.out.println("Invalid choice.");
+        }
+    }
+
+    private void registerUser() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+
+        if (users.containsKey(username)) {
+            System.out.println("Username already exists.");
+            return;
+        }
+
+        users.put(username, new User(username, password));
+        System.out.println("Registered successfully!");
+    }
+
+    private void loginUser() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+
+        User user = users.get(username);
+        if (user != null && user.password.equals(password)) {
+            currentUser = user;
+            System.out.println("Logged in successfully!");
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+
+    private void createPost() {
+        System.out.print("Enter your post: ");
+        String content = scanner.nextLine();
+        Post post = new Post(content, currentUser);
+        currentUser.posts.add(post);
+        allPosts.add(post);
+        System.out.println("Post created!");
+    }
+
+    private void viewPosts() {
+        for (Post post : allPosts) {
+            System.out.println(post);
+        }
+    }
+
+    private int getIntInput() {
+        while (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number.");
+            scanner.next();
+        }
+        return scanner.nextInt();
+    }
+}
