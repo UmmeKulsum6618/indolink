@@ -1,0 +1,87 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class ChatApplication {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter 's' for server or 'c' for client:");
+        String choice = scanner.nextLine();
+
+        if (choice.equalsIgnoreCase("s")) {
+            startServer();
+        } else if (choice.equalsIgnoreCase("c")) {
+            startClient();
+        } else {
+            System.out.println("Invalid choice.");
+        }
+    }
+    static void startServer() {
+        try (ServerSocket serverSocket = new ServerSocket(12345)) {
+            System.out.println("Server started. Waiting for client...");
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            Scanner scanner = new Scanner(System.in);
+
+            Thread receiveThread = new Thread(() -> {
+                String message;
+                try {
+                    while ((message = in.readLine()) != null) {
+                        System.out.println("Client: " + message);
+                    }
+                } catch (IOException e) {
+                   System.out.println("Client disconnected.");
+                }
+
+            });
+            receiveThread.start();
+
+            String message;
+            while (true) {
+                message = scanner.nextLine();
+                out.println(message);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void startClient() {
+        try (Socket socket = new Socket("localhost", 12345)) { // Replace "localhost" with server IP
+            System.out.println("Connected to server.");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            Scanner scanner = new Scanner(System.in);
+
+            Thread receiveThread = new Thread(() -> {
+                String message;
+                try {
+                    while ((message = in.readLine()) != null) {
+                        System.out.println("Server: " + message);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Server disconnected.");
+                }
+
+            });
+            receiveThread.start();
+
+            String message;
+            while (true) {
+                message = scanner.nextLine();
+                out.println(message);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
